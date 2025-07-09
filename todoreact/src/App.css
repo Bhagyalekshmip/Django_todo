@@ -1,0 +1,53 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.signup-container, .login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f0f0f0;
+}
+
+.signup-form, .login-form {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  max-width: 90%;
+
+}
+
+
+.signup-form h2, .login-form h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+.signup-form input, .login-form input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+    box-sizing: border-box;
+}
+.signup-form button, .login-form button {
+  width: 100%;
+  padding: 10px;
+   background: linear-gradient(to right, #4CAF50, #8BC34A); /* example gradient */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.signup-form button:hover, .login-form button:hover {
+   background: linear-gradient(to right, #4CAF50, #8BC34A); /* example gradient */
+}
+.signup-form p, .login-form p {
+  margin-top: 15px;
+  color: #666;
+}   

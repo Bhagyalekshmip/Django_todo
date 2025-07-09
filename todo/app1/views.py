@@ -54,8 +54,60 @@ def add_task(request):
     due_date = request.data.get('due_date')
     print(title, due_date)
     
-    if not title or due_date:
+    if not title or not due_date:
         return Response({'error': 'Title  and Due_date required.'}, status=status.HTTP_400_BAD_REQUEST)
     
     tasks = task.objects.create(title=title, due_date=due_date, user=request.user)
     return Response({'message': 'Task created successfully.', 'task_id': tasks.id}, status=status.HTTP_201_CREATED)
+
+
+# api to get all based on authenticated user
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,)) 
+def get_tasks(request):
+    tasks = task.objects.filter(user=request.user)
+    tasks_data = [{'id': t.id, 'title': t.title, 'due_date': t.due_date} for t in tasks]
+    return Response({'tasks': tasks_data}, status=status.HTTP_200_OK)
+
+# Api to get specific task on clcking edit options()
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def update_task(request, task_id):
+    try:
+        tasks = task.objects.get(id=task_id, user=request.user)
+        return Response({'id': tasks.id, 'title': tasks.title, 'due_date': tasks.due_date}, status=status.HTTP_200_OK)
+    except task.DoesNotExist:
+        return Response({'error': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+# put api of task
+@api_view(['PUT'])
+@permission_classes((IsAuthenticated,)) 
+def update_task(request, task_id):
+    try:
+        tasks = task.objects.get(id=task_id, user=request.user)
+        title = request.data.get('title')
+        due_date = request.data.get('due_date')
+        
+        if not title or not due_date:
+            return Response({'error': 'Title and Due date are required.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        tasks.title = title
+        tasks.due_date = due_date
+        tasks.save()
+        
+        return Response({'message': 'Task updated successfully.'}, status=status.HTTP_200_OK)
+    except task.DoesNotExist:
+        return Response({'error': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+# Api to delete task
+@api_view(['DELETE'])
+@permission_classes((IsAuthenticated,))
+def delete_task(request, task_id):
+    try:
+        tasks = task.objects.get(id=task_id, user=request.user)
+        tasks.delete()
+        return Response({'message': 'Task deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+    except task.DoesNotExist:
+        return Response({'error': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
