@@ -71,10 +71,15 @@ class TaskPagination(PageNumberPagination):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def get_tasks(request):
+    status_param = request.query_params.get('status')  # 'completed' or 'pending'
     tasks = task.objects.filter(user=request.user).order_by('due_date')
+    if status_param == 'completed':
+        tasks = tasks.filter(completed=True)
+    elif status_param == 'pending':
+        tasks = tasks.filter(completed=False)
     paginator = TaskPagination()
     result_page = paginator.paginate_queryset(tasks, request)
-    tasks_data = [{'id': t.id, 'title': t.title, 'due_date': t.due_date} for t in result_page]
+    tasks_data = [{'id': t.id, 'title': t.title, 'due_date': t.due_date,  'completed': t.completed} for t in result_page]
     return paginator.get_paginated_response(tasks_data)
 
 
