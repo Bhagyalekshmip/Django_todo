@@ -9,7 +9,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -31,6 +31,7 @@ function App() {
   };
 
   return (
+    
     <div className="signup-container">
       <form onSubmit={handleSubmit} className="signup-form" >
         <h2>Signup</h2>

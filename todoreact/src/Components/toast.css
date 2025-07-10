@@ -15,6 +15,9 @@
   background-color: #4CAF50;
 }
 .toast.error {
+  background-color: hsl(354, 83%, 43%);
+}
+.toast.error {
   background-color: #f44336;
 }
 .toast button {

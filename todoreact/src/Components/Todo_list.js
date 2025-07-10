@@ -2,6 +2,7 @@
     import axios from 'axios';
     import { useEffect, useState } from 'react';
     import Modalbox from './Modalbox';
+    import DeleteModal from './DeleteModal';
     import './Todo_list.css'; // Assuming you have some styles in App.css
     import { FaTrash, FaEdit, FaCheckCircle, FaRegCircle } from 'react-icons/fa';
     import { useNavigate } from 'react-router-dom';
@@ -13,13 +14,17 @@
       const [totalPages, setTotalPages] = useState(1);
       const [editingTask, setEditingTask] = useState(null);
       const [showModal, setShowModal] = useState(false);
+      const [showDeleteModal, setShowDeleteModal] = useState(false);
+      const [taskToDelete, setTaskToDelete] = useState(null);
       const [toast, setToast] = useState({ message: '', type: '' });
+      const [currentFilter, setCurrentFilter] = useState('');
+
       const navigate = useNavigate();
 
       useEffect(() => {
         // Fetch todos from the server when the component mounts
         const token = localStorage.getItem('token');
-        axios.get(`http://127.0.0.1:8000/gettask/?page=${page}`, {  // ✅ correct
+       axios.get(`http://127.0.0.1:8000/gettask/?page=${page}&status=${currentFilter}`, {
               headers: { Authorization: `Token ${token}` }  
             })
             .then(response => {
@@ -34,19 +39,31 @@
                 console.error("There was an error fetching the todos!", error);
                 alert("Failed to fetch todos. Please try again.");
             });
-        }, [page]);
+        }, [page, currentFilter]);
     // ------------------DELETE FUNCTION------------------
-      const deleteTodo = (id) => {
-        const token = localStorage.getItem('token');
-        axios.delete(`http://127.0.0.1:8000/deletetask/${id}/`, {
-          headers: { Authorization: `Token ${token}` },
-        })
-        .then(() => {
-          setTodos(todos.filter(todo => todo.id !== id));
-        })
-        .catch(() => alert("Delete failed"));
-        // You might want to handle the response or error her
-      };
+    const openDeleteModal = (todo) => {
+  setTaskToDelete(todo);
+  setShowDeleteModal(true);
+};
+
+
+const confirmDelete = () => {
+  const token = localStorage.getItem('token');
+  axios.delete(`http://127.0.0.1:8000/deletetask/${taskToDelete.id}/`, {
+    headers: { Authorization: `Token ${token}` },
+  })
+  .then(() => {
+    setTodos(prev => prev.filter(todo => todo.id !== taskToDelete.id));
+    setShowDeleteModal(false);
+    setTaskToDelete(null);
+    showToast("Task deleted successfully!", "error"); // ✅ show toast
+  })
+  .catch(() => {
+    alert("Delete failed");
+    setShowDeleteModal(false);
+  });
+};
+
     // -------------------------------------------------------
     // ------------------TOGGLE COMPLETE FUNCTION------------------
       const toggleComplete = (taskId) => {
@@ -108,6 +125,24 @@
         .catch(() => alert("Update failed"));
       };
     // ---------------------------------------------------------
+
+    const fetchTodosByStatus = (status) => {
+       setCurrentFilter(status); // ✅ store the filter
+  setPage(1);
+  const token = localStorage.getItem('token');
+    axios.get(`http://127.0.0.1:8000/gettask/?page=1&status=${status}`, {
+    headers: { Authorization: `Token ${token}` }
+  })
+  .then(response => {
+    setTodos(response.data.results);
+    setTotalPages(Math.ceil(response.data.count / 5));
+  })
+  .catch(error => {
+    console.error("Error fetching filtered tasks:", error);
+    alert("Failed to filter tasks.");
+  });
+};
+
       return (
         <div className="todo-list-container">
           <h2>Todo List</h2>
@@ -117,6 +152,14 @@
           onChange={handleSearchChange}
           className="search-bar"
           />  
+
+          <div className="filter-buttons">
+  <button onClick={() => fetchTodosByStatus('')}>All</button>
+  <button onClick={() => fetchTodosByStatus('pending')}>Pending</button>
+  <button onClick={() => fetchTodosByStatus('completed')}>Completed</button>
+</div>
+
+
           {/* need to display all the todos here in a neat table structure */}
             <table className="todo-table">
                 <thead>
@@ -139,9 +182,10 @@
                         <button onClick={() => toggleComplete(todo.id)}>
                         {todo.completed ? <FaCheckCircle /> : <FaRegCircle />}
                         </button>
-                        <button onClick={() => deleteTodo(todo.id)}>
-                        <FaTrash />
-                        </button>
+                        <button onClick={() => openDeleteModal(todo)}>
+                          <FaTrash />
+                          </button>
+
                         <button onClick={() => openModalbox(todo)}>
                       <FaEdit />
                     </button>
@@ -175,6 +219,13 @@
           type={toast.type}
           onClose={() => setToast({ message: '', type: '' })}
         />
+        <DeleteModal
+  show={showDeleteModal}
+  onClose={() => setShowDeleteModal(false)}
+  onConfirm={confirmDelete}
+  task={taskToDelete}
+/>
+
         </div>
       );
     }
