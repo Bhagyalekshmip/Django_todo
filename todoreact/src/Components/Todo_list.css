@@ -70,6 +70,7 @@
 .add-todo-button {
   display: block;
   margin: 0 auto;
+  margin-top: 25px;
   padding: 10px 20px;
   font-size: 16px;
   background: linear-gradient(to right, #4CAF50, #8BC34A);
@@ -145,3 +146,68 @@
 .modal-box button.close:hover {
   background-color: #d32f2f;
 }
+
+
+STYLE PAGINATION
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+.pagination button {
+  padding: 5px 15px;
+  margin: 0 5px;
+  border: none;
+  border-radius: 6px;
+  background-color: #dffada;
+  color: #431493;
+  cursor: pointer;
+  transition: background-color 3.3s, color 3.3s;
+}
+.pagination button:hover {
+  background-color: #e0e0e0;
+  color: #000;
+}
+.pagination button:disabled {
+  background-color: #d4c0c0;
+  color: #666;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  padding: 5px 8px;
+  margin: 0 5px;
+  background-color: #f0f0f0;
+  color: #333;
+  border-radius: 6px;
+}
+.pagination span.active {
+  background-color: #4CAF50;
+  color: white;
+}
+.pagination span.inactive {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius:14px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+ .search-bar:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+.search-bar::placeholder {
+  color: #999;
+  font-style: italic;
+}
+.search-bar:hover {
+  border-color: #4CAF50;
+} 

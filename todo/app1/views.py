@@ -62,12 +62,21 @@ def add_task(request):
 
 
 # api to get all based on authenticated user
+from rest_framework.pagination import PageNumberPagination
+
+class TaskPagination(PageNumberPagination):
+    page_size = 5  # or 10
+    page_size_query_param = 'page_size'
+
 @api_view(['GET'])
-@permission_classes((IsAuthenticated,)) 
+@permission_classes((IsAuthenticated,))
 def get_tasks(request):
-    tasks = task.objects.filter(user=request.user)
-    tasks_data = [{'id': t.id, 'title': t.title, 'due_date': t.due_date} for t in tasks]
-    return Response({'tasks': tasks_data}, status=status.HTTP_200_OK)
+    tasks = task.objects.filter(user=request.user).order_by('due_date')
+    paginator = TaskPagination()
+    result_page = paginator.paginate_queryset(tasks, request)
+    tasks_data = [{'id': t.id, 'title': t.title, 'due_date': t.due_date} for t in result_page]
+    return paginator.get_paginated_response(tasks_data)
+
 
 # Api to get specific task on clcking edit options()
 @api_view(['GET'])
@@ -78,6 +87,7 @@ def update_task(request, task_id):
         return Response({'id': tasks.id, 'title': tasks.title, 'due_date': tasks.due_date}, status=status.HTTP_200_OK)
     except task.DoesNotExist:
         return Response({'error': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
+  
     
 # put api of task
 @api_view(['PUT'])
@@ -111,3 +121,12 @@ def delete_task(request, task_id):
     except task.DoesNotExist:
         return Response({'error': 'Task not found.'}, status=status.HTTP_404_NOT_FOUND)
     
+# Api for search for task of specific user
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated,))
+def search_tasks(request):
+    query = request.query_params.get('query', '')
+    tasks = task.objects.filter(user=request.user, title__icontains=query).order_by('due_date')
+    tasks_data = [{'id': t.id, 'title': t.title, 'due_date': t.due_date} for t in tasks]
+    return Response(tasks_data, status=status.HTTP_200_OK)
