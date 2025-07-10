@@ -71,6 +71,7 @@
   display: block;
   margin: 0 auto;
   margin-top: 25px;
+  margin-bottom: 25px;
   padding: 10px 20px;
   font-size: 16px;
   background: linear-gradient(to right, #4CAF50, #8BC34A);
@@ -153,7 +154,6 @@ STYLE PAGINATION
 .pagination {
   display: flex;
   justify-content: center;
-  margin-top: 20px;
 }
 .pagination button {
   padding: 5px 15px;

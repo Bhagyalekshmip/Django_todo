@@ -130,3 +130,17 @@ def search_tasks(request):
     tasks = task.objects.filter(user=request.user, title__icontains=query).order_by('due_date')
     tasks_data = [{'id': t.id, 'title': t.title, 'due_date': t.due_date} for t in tasks]
     return Response(tasks_data, status=status.HTTP_200_OK)
+
+# ------------------------------------------------------------------------------------
+# ---------------API TO MARK COMPLETE--------------------------------------------------
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def toggle_task_completion(request,id):
+    try:
+        todo = task.objects.get(id=id, user=request.user)
+        todo.completed = not todo.completed  # Toggle status
+        todo.save()
+        return Response({'id': todo.id, 'completed': todo.completed}, status=200)
+    except task.DoesNotExist:
+        return Response({'error': 'Task not found'}, status=404)
