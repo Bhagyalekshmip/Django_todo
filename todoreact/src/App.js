@@ -40,7 +40,9 @@ function App() {
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
         <button type="submit" className='hi'>Signup</button>
+        <p>if you already have an account, <a href="/login">Login</a></p> 
       </form>
+     
     </div>
   );
 }

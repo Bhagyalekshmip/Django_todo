@@ -29,14 +29,28 @@ function Login() {
       });
       };
   return (
-    <div className="signup-container">
-      <form onSubmit={handleSubmit} className="signup-form" >
-        <h2>Login</h2>
-        <input type="username" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <button type="submit">Login</button>
-      </form>
-    </div>
+<div className="login-container">
+  <form onSubmit={handleSubmit} className="login-form">
+    <h2>Login</h2>
+    <input
+      type="text"
+      placeholder="Username"
+      value={username}
+      onChange={(e) => setUsername(e.target.value)}
+      required
+    />
+    <input
+      type="password"
+      placeholder="Password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      required
+    />
+    <button type="submit">Login</button>
+    <p>Don't have an account? <a href="/">Signup</a></p>
+  </form>
+</div>
+
   );
 }
 
