@@ -149,3 +149,100 @@ def toggle_task_completion(request,id):
         return Response({'id': todo.id, 'completed': todo.completed}, status=200)
     except task.DoesNotExist:
         return Response({'error': 'Task not found'}, status=404)
+ # views.py
+
+import csv, json
+from django.http import HttpResponse
+from io import StringIO
+from django.db import connection
+from .models import task
+
+# Export as CSV
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_tasks_csv(request):
+    tasks = task.objects.filter(user=request.user)
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=tasks.csv'
+    
+    writer = csv.writer(response)
+    writer.writerow(['ID', 'Title', 'Due Date', 'Completed'])
+    for t in tasks:
+        writer.writerow([t.id, t.title, t.due_date, t.completed])
+    return response
+
+# Export as JSON
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_tasks_json(request):
+    tasks = task.objects.filter(user=request.user)
+    tasks_data = [{'id': t.id, 'title': t.title, 'due_date': str(t.due_date), 'completed': t.completed} for t in tasks]
+    return Response(tasks_data, content_type='application/json')
+
+# Export as Text
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_tasks_text(request):
+    tasks = task.objects.filter(user=request.user)
+    response = HttpResponse(content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=tasks.txt'
+
+    for t in tasks:
+        response.write(f"ID: {t.id}, Title: {t.title}, Due: {t.due_date}, Completed: {t.completed}\n")
+    return response
+
+# Export as raw MySQL (basic example – returns SQL INSERTs)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_tasks_mysql(request):
+    tasks = task.objects.filter(user=request.user)
+    response = HttpResponse(content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=tasks.sql'
+
+    for t in tasks:
+        sql = f"INSERT INTO app1_task (id, title, due_date, completed, user_id) VALUES ({t.id}, '{t.title}', '{t.due_date}', {int(t.completed)}, {t.user.id});\n"
+        response.write(sql)
+    return response
+
+import pandas as pd
+from rest_framework.parsers import MultiPartParser
+from rest_framework.decorators import parser_classes
+@parser_classes([MultiPartParser])
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+
+def import_tasks(request, doc=None):
+    print("Import view called!")
+    uploaded_file = request.FILES.get('file')
+    print("Got File")
+    if not uploaded_file:
+        return Response({'error': 'No file uploaded'}, status=400)
+
+    try:
+        if doc == 'csv':
+            df = pd.read_csv(uploaded_file)
+            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")  # normalize columns
+
+        elif doc == 'json':
+            df = pd.read_json(uploaded_file)
+        elif doc == 'text':
+            df = pd.read_csv(uploaded_file, delimiter='|')
+        else:
+            return Response({'error': 'Unsupported format'}, status=400)
+
+        required_columns = {'title', 'due_date'}
+        if not required_columns.issubset(df.columns):
+            return Response({'error': f'Missing columns. Required: {required_columns}'}, status=400)
+
+        for _, row in df.iterrows():
+            task.objects.create(
+                title=row['title'],
+                due_date=row['due_date'],
+                completed=row.get('completed', False),
+                user=request.user
+            )
+
+        return Response({'message': 'Tasks imported successfully'}, status=201)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)

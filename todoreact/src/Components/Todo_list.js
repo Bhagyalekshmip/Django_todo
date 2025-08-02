@@ -17,6 +17,10 @@ function TodoList() {
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [toast, setToast] = useState({ message: '', type: '' });
   const [currentFilter, setCurrentFilter] = useState('');
+  const [importFile, setImportFile] = useState(null);
+  const [importFormat, setImportFormat] = useState('csv');
+
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +60,39 @@ function TodoList() {
     });
   };
 
+
+const handleImportFileChange = (e) => {
+  setImportFile(e.target.files[0]);
+};
+
+const handleImport = () => {
+  if (!importFile) {
+    showToast("Please choose a file", "error");
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('file', importFile);
+
+  axios.post(`http://127.0.0.1:8000/import/${importFormat}/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Token ${token}`,
+    },
+  })
+    .then((res) => {
+      showToast(res.data.message || "Import successful", "success");
+      setTimeout(() => window.location.reload(), 1000);
+    })
+    .catch((err) => {
+      const errMsg = err.response?.data?.error || "Import failed";
+      showToast(errMsg, "error");
+    });
+};
+
+  
+
   const toggleComplete = (taskId) => {
     const token = localStorage.getItem('token');
     axios.patch(`http://127.0.0.1:8000/togglecompletion/${taskId}/`, null, {
@@ -70,6 +107,36 @@ function TodoList() {
     })
     .catch(() => alert("Failed to update status."));
   };
+
+  const handleExport = (format) => {
+  const token = localStorage.getItem('token');
+  const url = `http://127.0.0.1:8000/export/${format}/`;
+
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error('Export failed');
+      return res.blob(); // Get file data
+    })
+    .then((blob) => {
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `tasks.${format === 'mysql' ? 'sql' : format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    })
+    .catch((err) => {
+      console.error(err);
+      alert('Export failed.');
+    });
+};
+
 
   const handleSearchChange = (e) => {
     const searchTerm = e.target.value.toLowerCase();
@@ -132,6 +199,38 @@ function TodoList() {
         <button onClick={() => fetchTodosByStatus('completed')}>Completed</button>
       </div>
 
+      <div className="export-buttons">
+  <button onClick={() => handleExport('csv')}>Export CSV</button>
+  <button onClick={() => handleExport('json')}>Export JSON</button>
+  <button onClick={() => handleExport('text')}>Export Text</button>
+  <button onClick={() => handleExport('mysql')}>Export SQL</button>
+</div>
+{/* Import Section */}
+<div className="d-flex align-items-center gap-2">
+  <h6 className="mb-0">Import:</h6>
+  <select
+    className="form-select"
+    style={{ width: "100px" }}
+    value={importFormat}
+    onChange={(e) => setImportFormat(e.target.value)}
+  >
+    <option value="csv">CSV</option>
+    <option value="json">JSON</option>
+    <option value="text">Text</option>
+  </select>
+
+  <input
+    type="file"
+    onChange={handleImportFileChange}
+    className="form-control"
+    style={{ width: "200px" }}
+  />
+
+  <button className="btn btn-primary" onClick={handleImport}>
+    Import
+  </button>
+</div>
+
       <table className="todo-table">
         <thead>
           <tr>
@@ -162,7 +261,6 @@ function TodoList() {
       <button onClick={() => navigate('/add')} className="add-todo-button">
         Add Todo
       </button>
-
       <div className="custom-pagination">
         <button
           disabled={page <= 1}

@@ -219,3 +219,20 @@
   background-color: #4CAF50;
   color: white;
 }
+
+.export-buttons {
+  margin: 15px 0;
+  display: flex;
+  gap: 10px;
+}
+.export-buttons button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 8px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.export-buttons button:hover {
+  background-color: #45a049;
+}
